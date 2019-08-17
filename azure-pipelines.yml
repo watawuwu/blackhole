@@ -62,8 +62,12 @@ jobs:
       rustup.ext target add $TARGET
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install rust for Windows
-  - script: make deps
+  - script: make deps TARGET=$TARGET
+    condition: ne( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install build dependencies
+  - script: make deps TARGET=%TARGET%
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    displayName: Install build dependencies for Windows
   - script: |
       set -eou
       D=$(mktemp -d)
