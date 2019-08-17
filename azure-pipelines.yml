@@ -48,6 +48,7 @@ jobs:
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
       rustup update
       rustup show
+      rustup target add $TARGET
       sudo apt update && sudo apt install -y musl-dev musl-tools && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
       echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
     condition: ne( variables['Agent.OS'], 'Windows_NT' )
@@ -58,6 +59,7 @@ jobs:
       echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
       rustup.exe update
       rustup.exe show
+      rustup.ext target add $TARGET
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install rust for Windows
   - script: make deps
