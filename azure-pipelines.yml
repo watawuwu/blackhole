@@ -55,8 +55,8 @@ jobs:
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(cat rust-toolchain)
       echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
-      rustup update
-      rustup show
+      $HOME/.cargo/bin/rustup update
+      $HOME/.cargo/bin/rustup show
     condition: eq( variables['Agent.OS'], 'Darwin' )
     displayName: Install rust for MacOS
   - script: |
