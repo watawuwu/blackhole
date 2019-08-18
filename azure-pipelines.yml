@@ -22,7 +22,7 @@ pr:
     - install.sh
 
 variables:
-  RUSTUP_TOOLCHAIN: nightly
+  RUSTUP_TOOLCHAIN: nightly-2019-08-15
   NAME: blackhole
 
 jobs:
