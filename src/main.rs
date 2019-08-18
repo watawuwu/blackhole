@@ -25,9 +25,22 @@ fn gulp(max_chars: u32, req: Request<Body>) -> BoxFut {
     let headers = req.headers().clone();
     let method = req.method().clone();
     let uri = req.uri().clone();
+    let content_type = headers
+        .get("content-type")
+        .map(|h| h.to_str().unwrap_or(""))
+        .map(String::from)
+        .unwrap_or_default();
 
     let reversed = req.into_body().concat2().map(move |chunk| {
-        let body = String::from_utf8_lossy(&chunk.to_vec()).to_string();
+        let body_value = if is_logging(&content_type) {
+            String::from_utf8_lossy(&chunk.to_vec())
+                .to_string()
+                .chars()
+                .take(max_chars as usize)
+                .collect::<String>()
+        } else {
+            String::new()
+        };
         let local = Local::now();
 
         println!(
@@ -41,7 +54,7 @@ fn gulp(max_chars: u32, req: Request<Body>) -> BoxFut {
             headers_label = label("headers"),
             headers_value = Style::new().fg(Colour::Green).paint(format!(r#"{:?}"#, headers)),
             body_label = label("body"),
-            body_value = value(body.chars().take(max_chars as usize).collect::<String>()),
+            body_value = value(body_value),
             ts_label = label("ts"),
             ts_value = value(local.to_rfc3339_opts(SecondsFormat::Secs, true)),
         );
@@ -50,6 +63,13 @@ fn gulp(max_chars: u32, req: Request<Body>) -> BoxFut {
     });
 
     Box::new(reversed)
+}
+
+fn is_logging(mime: &str) -> bool {
+    mime.contains("text/")
+        || mime.contains("application/json")
+        || mime.contains("application/xml")
+        || mime.contains("application/x-www-form-urlencoded")
 }
 
 fn label<'a, S: Into<String>>(input: S) -> ANSIGenericString<'a, str> {
@@ -126,79 +146,112 @@ mod tests {
         let server = serve();
 
         let get = b"\
-                    GET / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        GET / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-get\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &get.to_vec())?;
 
         let nested_path = b"\
-                    GET /n1/n2/n3 HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        GET /n1/n2/n3 HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-nested_path\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &nested_path.to_vec())?;
 
         let query = b"\
-                    GET /query?param=1 HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        GET /query?param=1 HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-query\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &query.to_vec())?;
 
         let head = b"\
-                    HEAD / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        HEAD / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-head\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &head.to_vec())?;
 
         let option = b"\
-                    OPTION / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        OPTION / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-option\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &option.to_vec())?;
 
         let put = b"\
-                    PUT / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        PUT / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-put\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &put.to_vec())?;
 
         let delete = b"\
-                    DELETE / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    User-Agent: test\r\n\
-                    Accept: */*\r\n\
-                    \r\n\
-                ";
+        DELETE / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-delete\r\n\
+        Accept: */*\r\n\
+        \r\n\
+        ";
         ok(&server, &delete.to_vec())?;
 
+        let post = b"\
+        POST / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-content_type\r\n\
+        Content-Length: 7\r\n\
+        \r\n\
+        aaa=bbb\
+        ";
+        ok(&server, &post.to_vec())?;
+
         let chunked = b"\
-                    POST / HTTP/1.1\r\n\
-                    Host: example.domain\r\n\
-                    Transfer-Encoding: chunked\r\n\
-                    \r\n\
-                    2\r\n\
-                    rt\r\n\
-                    0\r\n\
-                    \r\n\
-                ";
+        POST / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-chunked\r\n\
+        Transfer-Encoding: chunked\r\n\
+        \r\n\
+        2\r\n\
+        rt\r\n\
+        0\r\n\
+        \r\n\
+        ";
         ok(&server, &chunked.to_vec())?;
+
+        let content_type = b"\
+        POST / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-content_type\r\n\
+        Content-Type: application/x-www-form-urlencoded\r\n\
+        Content-Length: 7\r\n\
+        \r\n\
+        aaa=bbb\
+        ";
+        ok(&server, &content_type.to_vec())?;
+
+        let ignore_logging = b"\
+        POST / HTTP/1.1\r\n\
+        Host: example.domain\r\n\
+        User-Agent: test-ingnore_loggging\r\n\
+        Content-type: application/octet-stream\r\n\
+        Content-Length: 7\r\n\
+        \r\n\
+        aaa=bbb\
+        ";
+        ok(&server, &ignore_logging.to_vec())?;
 
         Ok(())
     }
