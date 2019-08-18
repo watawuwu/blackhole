@@ -45,21 +45,19 @@ jobs:
     vmImage: $(imageName)
   steps:
   - script: |
-      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
-      rustup update
-      rustup show
-      rustup target add $TARGET
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $(cat rust-toolchain)
       sudo apt update && sudo apt install -y musl-dev musl-tools && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
       echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+      rustup update
+      rustup show
     condition: ne( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install rust
   - script: |
       curl -sSf -o rustup-init.exe https://win.rustup.rs
-      rustup-init.exe -y --default-toolchain %RUSTUP_TOOLCHAIN%
+      rustup-init.exe -y --default-toolchain $(cat rust-toolchain)
       echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
       rustup.exe update
       rustup.exe show
-      rustup.exe target add $TARGET
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install rust for Windows
   - script: make deps TARGET=$TARGET
@@ -79,10 +77,10 @@ jobs:
       rm -rf "$D"
     condition: ne( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install cross
-  - script: make fmt-check test TARGET=$TARGET
+  - script: make test4ci TARGET=$TARGET
     displayName: Test
     condition: ne( variables['Agent.OS'], 'Windows_NT' )
-  - script: make fmt-check test TARGET=%TARGET%
+  - script: make test4ci TARGET=%TARGET%
     displayName: Test for Windows
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
   - script: |

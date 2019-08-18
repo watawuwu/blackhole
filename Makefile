@@ -14,7 +14,6 @@ LOG_LEVEL               := debug
 PREFIX                  := $(HOME)/.cargo
 LOG                     := $(shell echo '$(name)' | tr - _)=$(LOG_LEVEL)
 TARGET                  := x86_64-apple-darwin
-TOOLCHAIN               := nightly-2019-08-15
 CARGO_BIN               := cross
 ifneq (,$(findstring mingw64, $(OS)))
     CARGO_BIN := cargo
@@ -24,7 +23,7 @@ ifeq (,$(shell command -v cross 2> /dev/null))
 endif
 CARGO_OPTIONS           :=
 CARGO_SUB_OPTIONS       := --target $(TARGET)
-CARGO_COMMAND           := $(CARGO_BIN) +$(TOOLCHAIN) $(CARGO_OPTIONS)
+CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
 CONTAINER_REPO          := watawuwu/blackhole
 CONTAINER_TAG           := latest
 APP_ARGS                :=
@@ -37,9 +36,7 @@ export RUST_BACKTRACE=1
 # Task
 #===============================================================
 deps: ## Install depend tools
-	rustup toolchain install $(TOOLCHAIN)-$(TARGET)
 	rustup target add $(TARGET)
-	# Workaround if you installed rustfmt and clippy with --toolchain, lint task would fail. Because cargo fmt and clippy command use default host
 	rustup component add rustfmt
 	rustup component add clippy
 	rustup show # for container
@@ -48,16 +45,19 @@ dev-deps: ## Install dev depend tools
 	rustup component add rust-src
 	$(CARGO_COMMAND) install --force cargo-outdated
 
-run: fix lint ## Execute a main.rs
+run: fix fmt clippy ## Execute a main.rs
 	$(CARGO_COMMAND) run $(CARGO_SUB_OPTIONS) -- $(APP_ARGS)
 
-test: fix lint ## Run the tests
+test: fix fmt clippy ## Run the tests
 	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS) -- --nocapture
+
+test4ci: fmt-check clippy ## Run the tests
+	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS)
 
 check: fix fmt ## Check syntax, but don't build object files
 	$(CARGO_COMMAND) check $(CARGO_SUB_OPTIONS)
 
-build: ## Build all project
+build: fmt-check clippy ## Build all project
 	$(CARGO_COMMAND) build $(CARGO_SUB_OPTIONS)
 
 check-lib: ## Check module version
@@ -73,7 +73,7 @@ install: ## Install to $(PREFIX) directory
 	$(CARGO_COMMAND) install --force --root $(PREFIX) --path . $(CARGO_SUB_OPTIONS)
 
 fix: ## Run fmt
-	$(CARGO_COMMAND) fix $(CARGO_SUB_OPTIONS)
+	$(CARGO_COMMAND) fix $(CARGO_SUB_OPTIONS) --allow-dirty
 
 fmt: ## Run fmt
 	$(CARGO_COMMAND) fmt
@@ -83,8 +83,6 @@ fmt-check: ## Run fmt
 
 clippy: ## Run clippy
 	$(CARGO_COMMAND) clippy --all-features -- -D warnings
-
-lint: fmt clippy ## Run fmt and clippy
 
 release-build: ## Build all project
 	$(MAKE) build CARGO_SUB_OPTIONS="$(CARGO_SUB_OPTIONS) --release"
