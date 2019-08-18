@@ -7,10 +7,6 @@ trigger:
   tags:
     include:
     - '*'
-  paths:
-    exclude:
-    - README.md
-    - install.sh
 pr:
   autoCancel: true
   branches:
