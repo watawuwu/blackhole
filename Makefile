@@ -39,8 +39,9 @@ export RUST_BACKTRACE=1
 deps: ## Install depend tools
 	rustup toolchain install $(TOOLCHAIN)-$(TARGET)
 	rustup target add $(TARGET)
-	rustup component add rustfmt --toolchain $(TOOLCHAIN)-$(TARGET)
-	rustup component add clippy --toolchain $(TOOLCHAIN)-$(TARGET)
+	# Workaround if you installed rustfmt and clippy with --toolchain, lint task would fail. Because cargo fmt and clippy command use default host
+	rustup component add rustfmt
+	rustup component add clippy
 	rustup show # for container
 
 dev-deps: ## Install dev depend tools
@@ -92,7 +93,7 @@ publish:
 ifeq ($(LEVEL),)
 	$(error LEVEL not set correctly.)
 endif
-	echo cargo release $(LEVEL) --no-dev-version --tag-name "\{\{version\}\}"
+	cargo release $(LEVEL) --no-dev-version --tag-name "\{\{version\}\}"
 
 container-build:
 	docker build -t $(CONTAINER_REPO):$(CONTAINER_TAG) .
