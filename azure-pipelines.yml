@@ -59,7 +59,7 @@ jobs:
       echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
       rustup.exe update
       rustup.exe show
-      rustup.ext target add $TARGET
+      rustup.exe target add $TARGET
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
     displayName: Install rust for Windows
   - script: make deps TARGET=$TARGET
