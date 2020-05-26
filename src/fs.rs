@@ -1,8 +1,7 @@
+use anyhow::Result;
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::Path;
-
-use crate::error::Result;
 
 #[allow(dead_code)]
 pub fn mk_dir<P: AsRef<Path>>(path: P) -> Result<()> {

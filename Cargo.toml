@@ -21,11 +21,11 @@ is-it-maintained-open-issues      = { repository = "watawuwu/blackhole", service
 maintenance                       = { status = "passively-maintained" }
 
 [dependencies]
-failure           = "0.1"
-structopt         = "0.2"
+anyhow            = "1.0"
+structopt         = "0.3"
 exitcode          = "1.1"
 log               = "0.4"
-pretty_env_logger = "0.3"
+pretty_env_logger = "0.4"
 chrono            = { version = "0.4", features = ["serde"] }
 ansi_term         = "0.12"
 warp              = "0.1"

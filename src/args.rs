@@ -1,4 +1,4 @@
-use crate::error::Result;
+use anyhow::Result;
 use std::net::{Ipv4Addr, SocketAddr};
 use structopt::StructOpt;
 

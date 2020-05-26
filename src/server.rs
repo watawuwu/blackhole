@@ -1,5 +1,5 @@
 use crate::args::Args;
-use crate::error::Result;
+use anyhow::*;
 use std::env;
 
 use crate::access_log::AccessLog;

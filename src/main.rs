@@ -1,10 +1,8 @@
 mod access_log;
 mod args;
-mod error;
 mod fs;
 mod server;
 
-use exitcode;
 use std::env;
 use std::process::exit;
 
