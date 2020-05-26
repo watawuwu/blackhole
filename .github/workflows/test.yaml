@@ -1,0 +1,91 @@
+name: Test
+
+on:
+  push:
+    paths-ignore:
+    - '*.md'
+    - '*.sh'
+    - 'Dockerfile'
+    - 'Makefile'
+    - 'LICENSE-*'
+    tags-ignore:
+    - '*.*.*'
+    # workaround https://github.community/t5/GitHub-Actions/Using-on-push-tags-ignore-and-paths-ignore-together/td-p/38559
+    branches:
+    - '**'
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        target:
+        - x86_64-unknown-linux-gnu
+        - x86_64-unknown-linux-musl
+        - x86_64-apple-darwin
+        - x86_64-pc-windows-msvc
+        include:
+        - target: x86_64-unknown-linux-gnu
+          os: ubuntu-latest
+        - target: x86_64-unknown-linux-musl
+          os: ubuntu-latest
+        - target: x86_64-apple-darwin
+          os: macos-latest
+        - target: x86_64-pc-windows-msvc
+          os: windows-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Setup code
+      uses: actions/checkout@v2
+
+    - name: Install musl tools
+      if: matrix.target == 'x86_64-unknown-linux-musl'
+      run: |
+        sudo apt install -y musl-tools libssl-dev --no-install-recommends
+        echo ::set-env name=OPENSSL_LIB_DIR::/usr/lib/x86_64-linux-gnu/
+        echo ::set-env name=OPENSSL_INCLUDE_DIR::/usr/include/openssl/
+
+    # https://github.com/actions/cache/blob/master/examples.md#rust---cargo
+    - name: Cache cargo registry
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/registry
+        key: ${{ matrix.os }}-${{ matrix.target }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo index
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/git
+        key: ${{ matrix.os }}-${{ matrix.target }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    - name: Cache cargo build
+      uses: actions/cache@v1
+      with:
+        path: target
+        key: ${{ matrix.os }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
+        components: rustfmt, clippy
+
+    - name: Test
+      uses: actions-rs/cargo@v1.0.1
+      with:
+        command: test
+        args: --target=${{ matrix.target }}
+
+    - name: Check format
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
+
+    - name: Run lint
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: --all-features -- -D warnings
