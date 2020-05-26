@@ -3,10 +3,10 @@
 blackhole is a server that responds to any request with http status code 200.  
 For example, you can check what kind of request is notified by GitHub webhook from the access log.
 
-[![Azure devops](https://img.shields.io/azure-devops/build/sabi-dev/tools/3.svg)](https://dev.azure.com/sabi-dev/tools/_build?definitionId=3)
+![Github Action](https://github.com/watawuwu/blackhole/workflows/Test/badge.svg?branch=master) 
 [![Latest version](https://img.shields.io/crates/v/blackhole-bin.svg)](https://crates.io/crates/blackhole-bin)
 [![Documentation](https://docs.rs/blackhole-bin/badge.svg)](https://docs.rs/crate/blackhole-bin)
-[![Docker](https://img.shields.io/docker/build/watawuwu/blackhole.svg)](https://cloud.docker.com/repository/docker/watawuwu/blackhole/)
+![Docker Pulls](https://img.shields.io/docker/pulls/watawuwu/blackhole)
 ![License](https://img.shields.io/crates/l/blackhole-bin.svg)
 
 
