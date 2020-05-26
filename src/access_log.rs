@@ -63,11 +63,20 @@ impl AccessLog {
             path_label = label("path"),
             path_value = value(self.path.as_str()),
             query_label = label("query"),
-            query_value = Style::new().fg(Colour::Green).paint(format!(r#"{:?}"#, self.query)),
+            query_value = Style::new()
+                .fg(Colour::Green)
+                .paint(format!(r#"{:?}"#, self.query)),
             addr_label = label("addr"),
-            addr_value = value(self.addr.map(|s|s.to_string()).unwrap_or_default().as_str()),
+            addr_value = value(
+                self.addr
+                    .map(|s| s.to_string())
+                    .unwrap_or_default()
+                    .as_str()
+            ),
             headers_label = label("headers"),
-            headers_value = Style::new().fg(Colour::Green).paint(format!(r#"{:?}"#, self.headers)),
+            headers_value = Style::new()
+                .fg(Colour::Green)
+                .paint(format!(r#"{:?}"#, self.headers)),
             body_label = label("body"),
             body_value = Style::new().fg(Colour::Green).paint(body),
             ts_label = label("ts"),
