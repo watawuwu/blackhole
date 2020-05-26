@@ -62,10 +62,10 @@ pub fn serve(row_args: Vec<String>) -> Result<()> {
     }
     pretty_env_logger::init();
 
-    debug!("start!");
-
     let socket = args.socket_addr();
     let max_chars = args.max_chars;
+
+    debug!("start server {}", socket);
 
     let service = service(max_chars);
     warp::serve(service).run(socket);
