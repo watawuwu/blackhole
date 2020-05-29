@@ -1,9 +1,9 @@
 # blackhole
 
-blackhole is a server that responds to any request with http status code 200.  
+blackhole is a server that responds to any request with http status code 200.
 For example, you can check what kind of request is notified by GitHub webhook from the access log.
 
-![Github Action](https://github.com/watawuwu/blackhole/workflows/Test/badge.svg?branch=master) 
+![Github Action](https://github.com/watawuwu/blackhole/workflows/Test/badge.svg?branch=master)
 [![Latest version](https://img.shields.io/crates/v/blackhole-bin.svg)](https://crates.io/crates/blackhole-bin)
 [![Documentation](https://docs.rs/blackhole-bin/badge.svg)](https://docs.rs/crate/blackhole-bin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/watawuwu/blackhole)
@@ -15,25 +15,47 @@ For example, you can check what kind of request is notified by GitHub webhook fr
 - Usage
 
 ```
+blackhole-bin 0.4.0
 USAGE:
-    blackhole [FLAGS] [OPTIONS]
+    blackhole [FLAGS] [OPTIONS] -z <dummy>
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-    -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
+    -h, --help
+            Prints help information
+
+        --log-all
+            Enable log output from dependencies
+
+    -P, --pretty
+            Enable pretty printing
+
+    -q, --quiet
+            Suppress all log output
+
+    -V, --version
+            Prints version information
+
+    -v, --verbosity
+            Print more log output
+
 
 OPTIONS:
-    -a, --addr <addr>              Listen address [default: 0.0.0.0]
-    -m, --max_chars <max_chars>    Max display body chars [default: 1024]
-    -p, --port <port>              Listen port [default: 3000]
+    -a, --address <address>
+            Network address [default: 127.0.0.1]
+
+    -z <dummy>
+
+
+    -p, --port <port>
+            Insecure HTTP port [env: PORT=]  [default: 80]
+
 ```
 
 - Launch server
 
 ```
 # listen port is 3000
-❯❯ blackhole
+❯❯ blackhole --port 3000
 
 ---
 
@@ -77,11 +99,32 @@ OPTIONS:
 < date: Sat, 17 Aug 2019 14:33:18 GMT
 <
 
+❯❯ curl -v -d '{"test": 1}' -H 'application/json' -XPOST http://127.0.0.1:3000/json
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (127.0.0.1) port 3000 (#0)
+> POST /json HTTP/1.1
+> Host: 127.0.0.1:3000
+> User-Agent: curl/7.64.1
+> Accept: */*
+> Content-Length: 11
+> Content-Type: application/x-www-form-urlencoded
+>
+* upload completely sent off: 11 out of 11 bytes
+< HTTP/1.1 200 OK
+< content-length: 0
+< date: Fri, 29 May 2020 07:54:16 GMT
+<
+* Connection #0 to host 127.0.0.1 left intact
+* Closing connection 0
+
 ---
 # access log
-{"method": "GET", "path": "/", "query": "", "headers": {"host": "127.0.0.1:3000", "user-agent": "curl/7.54.0", "accept": "*/*"}, "body": "", "ts": "2019-08-17T23:27:58+09:00"}
-{"method": "POST", "path": "/", "query": "", "headers": {"host": "127.0.0.1:3000", "user-agent": "curl/7.54.0", "accept": "*/*"}, "body": "", "ts": "2019-08-17T23:29:21+09:00"}
-{"method": "POST", "path": "/xxx/yyy", "query": "", "headers": {"host": "127.0.0.1:3000", "user-agent": "curl/7.54.0", "accept": "*/*", "content-length": "9", "content-type": "application/x-www-form-urlencoded"}, "body": "param=aaa", "ts": "2019-08-17T23:31:44+09:00"}
+{"path":"/","query":{},"addr":"127.0.0.1:3000","headers":{"accept":"*/*","user-agent":"curl/7.64.1","host":"127.0.0.1:3000"},"method":"GET","ts":"2020-05-29T16:52:11.600380+09:00"}
+{"path":"/","query":{},"addr":"127.0.0.1:3000","headers":{"accept":"*/*","host":"127.0.0.1:3000","user-agent":"curl/7.64.1"},"method":"POST","ts":"2020-05-29T16:52:24.620505+09:00"}
+{"path":"/xxx/yyy","query":{},"addr":"127.0.0.1:3000","body":"param=aaa","headers":{"user-agent":"curl/7.64.1","accept":"*/*","host":"127.0.0.1:3000","content-type":"application/x-www-form-urlencoded","content-length":"9"},"method":"POST","ts":"2020-05-29T16:52:52.644463+09:00"}
+{"path":"/json","query":{},"addr":"127.0.0.1:3000","body":{"test":1},"headers":{"content-type":"application/x-www-form-urlencoded","content-length":"11","user-agent":"curl/7.64.1","host":"127.0.0.1:3000","accept":"*/*"},"method":"POST","ts":"2020-05-29T16:53:34.934432+09:00"}
 ```
 
 ## Installing
