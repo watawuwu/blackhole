@@ -18,15 +18,19 @@ CARGO_BIN               := cross
 ifneq (,$(findstring mingw64, $(OS)))
     CARGO_BIN := cargo
 endif
+ifneq (,$(findstring darwin, $(OS)))
+    CARGO_BIN := cargo
+endif
 ifeq (,$(shell command -v cross 2> /dev/null))
     CARGO_BIN := cargo
 endif
 CARGO_OPTIONS           :=
-CARGO_SUB_OPTIONS       := --target $(TARGET)
+CARGO_SUB_OPTIONS       :=
 CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
+CARGO_BUILD_TARGET      :=
 CONTAINER_REPO          := watawuwu/blackhole
 CONTAINER_TAG           := latest
-APP_ARGS                :=
+APP_ARGS                := --port 8080 --address 0.0.0.0
 
 # Environment
 #===============================================================
@@ -36,7 +40,9 @@ export RUST_BACKTRACE=1
 # Task
 #===============================================================
 deps: ## Install depend tools
-	rustup target add $(TARGET)
+ifneq ($(CARGO_BUILD_TARGET),)
+	rustup target add $(CARGO_BUILD_TARGET)
+endif
 	rustup component add rustfmt
 	rustup component add clippy
 	rustup show # for container
@@ -46,22 +52,25 @@ dev-deps: ## Install dev depend tools
 	$(CARGO_COMMAND) install --force cargo-outdated
 
 run: fix fmt clippy ## Execute a main.rs
-	$(CARGO_COMMAND) run $(CARGO_SUB_OPTIONS) -- $(APP_ARGS)
+	$(CARGO_COMMAND) run -- $(APP_ARGS)
 
 test: fix fmt clippy ## Run the tests
-	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS) -- --nocapture
+	$(CARGO_COMMAND) test -- --nocapture
 
 test4ci: fmt-check clippy ## Run the tests
-	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS)
+	$(CARGO_COMMAND) test
 
 check: fix fmt ## Check syntax, but don't build object files
-	$(CARGO_COMMAND) check $(CARGO_SUB_OPTIONS)
+	$(CARGO_COMMAND) check
 
-build: fmt-check clippy ## Build all project
-	$(CARGO_COMMAND) build $(CARGO_SUB_OPTIONS)
+build: check clippy ## Build all project
+	$(CARGO_COMMAND) build
+
+release-build: ## Build all project
+	$(CARGO_COMMAND) build --release
 
 check-lib: ## Check module version
-	$(CARGO_COMMAND) outdated
+	$(CARGO_COMMAND) outdated -R
 
 update: ## Update modules
 	$(CARGO_COMMAND) update
@@ -70,10 +79,10 @@ clean: ## Remove the target directory
 	$(CARGO_COMMAND) clean
 
 install: ## Install to $(PREFIX) directory
-	$(CARGO_COMMAND) install --force --root $(PREFIX) --path . $(CARGO_SUB_OPTIONS)
+	$(CARGO_COMMAND) install --force --root $(PREFIX) --path .
 
 fix: ## Run fmt
-	$(CARGO_COMMAND) fix $(CARGO_SUB_OPTIONS) --allow-dirty
+	$(CARGO_COMMAND) fix --allow-staged --allow-dirty
 
 fmt: ## Run fmt
 	$(CARGO_COMMAND) fmt
@@ -84,14 +93,11 @@ fmt-check: ## Run fmt
 clippy: ## Run clippy
 	$(CARGO_COMMAND) clippy --all-features -- -D warnings
 
-release-build: ## Build all project
-	$(MAKE) build CARGO_SUB_OPTIONS="$(CARGO_SUB_OPTIONS) --release"
-
 publish:
 ifeq ($(LEVEL),)
 	$(error LEVEL not set correctly.)
 endif
-	cargo release $(LEVEL) --no-dev-version --tag-name "\{\{version\}\}"
+	cargo release $(LEVEL) --no-dev-version --tag-name "{{version}}"
 
 container-build:
 	docker build -t $(CONTAINER_REPO):$(CONTAINER_TAG) .

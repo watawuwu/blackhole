@@ -1,79 +1,62 @@
-use crate::error::Result;
+use anyhow::Result;
+use log::LevelFilter;
 use std::net::{Ipv4Addr, SocketAddr};
-use structopt::StructOpt;
 
-#[derive(StructOpt, PartialEq, Debug)]
+#[derive(structopt::StructOpt, paw_structopt::StructOpt, Debug)]
+#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
 pub struct Args {
-    /// Verbose mode (-v, -vv, -vvv, etc.)
-    #[structopt(short, long, parse(from_occurrences))]
-    pub verbose: u8,
-
-    /// Listen port
-    #[structopt(short, long, default_value = "3000")]
-    pub port: u16,
-
-    /// Listen address
-    #[structopt(short, long, default_value = "0.0.0.0")]
-    pub addr: Ipv4Addr,
-
-    /// Max display body chars
-    #[structopt(short, long, default_value = "1024")]
-    pub max_chars: u32,
+    #[structopt(flatten)]
+    address: clap_flags::Address,
+    #[structopt(flatten)]
+    logger: clap_flags::Log,
+    #[structopt(flatten)]
+    port: clap_flags::Port,
 }
 
 impl Args {
-    pub fn new(raw_args: &[String]) -> Result<Args> {
-        let mut app = Args::clap();
-        let mut buf: Vec<u8> = Vec::new();
-        app.write_long_help(&mut buf)?;
-
-        let clap = app.get_matches_from_safe(raw_args)?;
-        let args = Args::from_clap(&clap);
-        Ok(args)
+    pub fn socket_addr(&self) -> Result<SocketAddr> {
+        let ipv4: Ipv4Addr = self.address.address.parse()?;
+        Ok((ipv4, self.port.port).into())
     }
 
-    pub fn socket_addr(&self) -> SocketAddr {
-        (self.addr, self.port).into()
-    }
-
-    pub fn log_level(&self) -> Option<String> {
-        let level = match self.verbose {
-            1 => Some("error"),
-            2 => Some("warn"),
-            3 => Some("info"),
-            4 => Some("debug"),
-            5 => Some("trace"),
-            _ => None,
-        };
-        level.map(String::from)
+    pub fn log_level_filter(&self) -> LevelFilter {
+        self.logger
+            .log_level()
+            .map(|x| x.to_level_filter())
+            .unwrap_or_else(|| LevelFilter::Info)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use anyhow::Result;
+    use structopt::StructOpt;
 
-    fn log_level_ok(test_args: Vec<&str>, expect: &str) {
+    fn log_level_ok(test_args: Vec<&str>, expect: LevelFilter) -> Result<()> {
         let raw_args = test_args.into_iter().map(String::from).collect::<Vec<_>>();
-        let args = Args::new(&raw_args).unwrap();
-        assert_eq!(args.log_level(), Some(String::from(expect)));
+
+        let app = Args::clap();
+        let clap = app.get_matches_from_safe(raw_args)?;
+        let args = Args::from_clap(&clap);
+        assert_eq!(args.log_level_filter(), expect);
+        Ok(())
     }
 
     #[test]
-    fn log_level() {
+    fn log_level() -> Result<()> {
+        let raw_args = vec!["blackhole"];
+        log_level_ok(raw_args, LevelFilter::Info)?;
+
         let raw_args = vec!["blackhole", "-v"];
-        log_level_ok(raw_args, "error");
+        log_level_ok(raw_args, LevelFilter::Debug)?;
 
         let raw_args = vec!["blackhole", "-vv"];
-        log_level_ok(raw_args, "warn");
+        log_level_ok(raw_args, LevelFilter::Trace)?;
 
         let raw_args = vec!["blackhole", "-vvv"];
-        log_level_ok(raw_args, "info");
+        log_level_ok(raw_args, LevelFilter::Trace)?;
 
-        let raw_args = vec!["blackhole", "-vvvv"];
-        log_level_ok(raw_args, "debug");
-
-        let raw_args = vec!["blackhole", "-vvvvv"];
-        log_level_ok(raw_args, "trace");
+        Ok(())
     }
 }

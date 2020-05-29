@@ -1,104 +1,86 @@
-use ansi_term::Style;
-use ansi_term::{ANSIGenericString, Colour};
 use chrono::prelude::*;
 
-use serde_json::{json, Value};
+use anyhow::*;
+use colored_json::{ColorMode, ColoredFormatter, CompactFormatter};
+use serde::Serialize;
 use std::collections::HashMap;
-use std::net::SocketAddr;
 
+use log::*;
+use serde_json::Value;
+use std::str::FromStr;
+use tide::Request;
+
+#[derive(Debug, Serialize)]
 pub struct AccessLog {
     path: String,
     query: HashMap<String, String>,
-    addr: Option<SocketAddr>,
-    body: String,
+    addr: String,
+    #[serde(flatten)]
+    body: Option<Body>,
     headers: HashMap<String, String>,
-    content_type: String,
     method: String,
     ts: DateTime<Local>,
 }
 
+#[derive(Debug, Serialize)]
+enum Body {
+    #[serde(rename = "body")]
+    JsonValue(Value),
+    #[serde(rename = "body")]
+    Text(String),
+}
+
 impl AccessLog {
-    pub fn new(
-        method: String,
-        path: String,
-        query: HashMap<String, String>,
-        addr: Option<SocketAddr>,
-        body: String,
-        headers: HashMap<String, String>,
-    ) -> AccessLog {
-        let content_type = headers
-            .get("content-type")
-            .map(String::from)
+    pub async fn from<State: Send + Sync + 'static>(mut req: Request<State>) -> tide::Result<Self> {
+        let method = req.method().to_string();
+        let path = req.url().path().to_string();
+        let query = req.query()?;
+        let addr = req.local_addr().map(String::from).unwrap_or_default();
+        let content_type = req
+            .content_type()
+            .map(|x| x.to_string())
             .unwrap_or_default();
+
+        let body = if Self::is_record_body(&content_type) {
+            let body = req.body_string().await?;
+            let body = match serde_json::Value::from_str(&body) {
+                Ok(v) => Body::JsonValue(v),
+                Err(_) => Body::Text(body),
+            };
+            Some(body)
+        } else {
+            None
+        };
+        let headers = req
+            .iter()
+            .map(|(k, v)| (String::from(k.as_str()), String::from(v.as_str())))
+            .collect();
 
         let ts = Local::now();
 
-        AccessLog {
+        Ok(AccessLog {
             path,
             query,
             addr,
             headers,
             body,
-            content_type,
             method,
             ts,
-        }
+        })
     }
 
-    pub fn println(&self, max_chars: u32) {
-        let body = if self.is_logging() {
-            let buf = self.body.as_str();
-            let v: Value = serde_json::from_str(buf).unwrap_or_else(|_| json!(buf));
-            v.to_string()
-                .chars()
-                .take(max_chars as usize)
-                .collect::<String>()
-        } else {
-            String::from(r#""""#)
-        };
-        println!(
-            r#"{{{method_label}: {method_value}, {path_label}: {path_value}, {query_label}: {query_value}, {addr_label}: {addr_value}, {headers_label}: {headers_value}, {body_label}: {body_value}, {ts_label}: {ts_value}}}"#,
-            method_label = label("method"),
-            method_value = value(self.method.as_str()),
-            path_label = label("path"),
-            path_value = value(self.path.as_str()),
-            query_label = label("query"),
-            query_value = Style::new().fg(Colour::Green).paint(format!(r#"{:?}"#, self.query)),
-            addr_label = label("addr"),
-            addr_value = value(self.addr.map(|s|s.to_string()).unwrap_or_default().as_str()),
-            headers_label = label("headers"),
-            headers_value = Style::new().fg(Colour::Green).paint(format!(r#"{:?}"#, self.headers)),
-            body_label = label("body"),
-            body_value = Style::new().fg(Colour::Green).paint(body),
-            ts_label = label("ts"),
-            ts_value = value(self.rfc3339().as_str()),
-        );
+    pub fn log(&self) -> Result<()> {
+        let value = serde_json::to_value(self)?;
+        let formatter = ColoredFormatter::new(CompactFormatter {});
+        let json = formatter.to_colored_json(&value, ColorMode::On)?;
+        info!("{}", json);
+        Ok(())
     }
 
-    fn rfc3339(&self) -> String {
-        self.ts.to_rfc3339_opts(SecondsFormat::Secs, true)
+    fn is_record_body(content_type: &str) -> bool {
+        content_type.contains("text/")
+            || content_type.contains("application/json")
+            || content_type.contains("application/xml")
+            || content_type.contains("application/x-www-form-urlencoded")
     }
-
-    fn is_logging(&self) -> bool {
-        self.content_type.contains("text/")
-            || self.content_type.contains("application/json")
-            || self.content_type.contains("application/xml")
-            || self
-                .content_type
-                .contains("application/x-www-form-urlencoded")
-    }
-}
-
-fn label(input: &str) -> ANSIGenericString<str> {
-    Style::new()
-        .bold()
-        .fg(Colour::Blue)
-        .paint(format!(r#""{}""#, input))
-}
-
-fn value(input: &str) -> ANSIGenericString<str> {
-    let json: Value = json!(input);
-    Style::new()
-        .fg(Colour::Green)
-        .paint(format!(r#""{}""#, json.as_str().unwrap_or_default()))
 }
