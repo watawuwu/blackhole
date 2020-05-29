@@ -30,7 +30,7 @@ CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
 CARGO_BUILD_TARGET      :=
 CONTAINER_REPO          := watawuwu/blackhole
 CONTAINER_TAG           := latest
-APP_ARGS                :=
+APP_ARGS                := --port 8080 --address 0.0.0.0
 
 # Environment
 #===============================================================

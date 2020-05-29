@@ -1,19 +1,22 @@
 mod access_log;
 mod args;
-mod fs;
+mod middleware;
 mod server;
 
-use std::env;
-use std::process::exit;
+use anyhow::Result;
+use args::Args;
+use std::io;
 
-fn main() {
-    let args = env::args().collect::<Vec<String>>();
-    let code = match server::serve(args) {
-        Ok(_) => exitcode::OK,
-        Err(err) => {
-            eprintln!("{}", err);
-            exitcode::USAGE
-        }
-    };
-    exit(code)
+#[async_std::main]
+#[paw::main]
+async fn main(args: Args) -> Result<()> {
+    let out = io::stdout();
+    fern::Dispatch::new()
+        .level(args.log_level_filter())
+        .level_for("tide", log::LevelFilter::Warn)
+        .chain(out)
+        .apply()?;
+
+    server::serve(args.socket_addr()?).await?;
+    Ok(())
 }
