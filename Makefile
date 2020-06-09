@@ -93,6 +93,9 @@ fmt-check: ## Run fmt
 clippy: ## Run clippy
 	$(CARGO_COMMAND) clippy --all-features -- -D warnings
 
+bench: ## Run benchmark
+	$(CARGO_COMMAND) bench
+
 publish:
 ifeq ($(LEVEL),)
 	$(error LEVEL not set correctly.)
