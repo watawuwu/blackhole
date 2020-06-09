@@ -1,10 +1,8 @@
-mod access_log;
 mod args;
-mod middleware;
-mod server;
 
 use anyhow::Result;
 use args::Args;
+use blackhole_bin::server;
 use std::io;
 
 #[async_std::main]
