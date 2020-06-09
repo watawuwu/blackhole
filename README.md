@@ -17,7 +17,7 @@ For example, you can check what kind of request is notified by GitHub webhook fr
 ```
 blackhole-bin 0.4.0
 USAGE:
-    blackhole [FLAGS] [OPTIONS] -z <dummy>
+    blackhole [FLAGS] [OPTIONS]
 
 FLAGS:
     -h, --help
@@ -42,9 +42,6 @@ FLAGS:
 OPTIONS:
     -a, --address <address>
             Network address [default: 127.0.0.1]
-
-    -z <dummy>
-
 
     -p, --port <port>
             Insecure HTTP port [env: PORT=]  [default: 80]
@@ -153,7 +150,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## Versioningx
+## Versioning
 
 We use [SemVer](http://semver.org/) for versioning.
 
