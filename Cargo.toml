@@ -43,6 +43,11 @@ fern              = "0.6"
 paw               = "1.0"
 paw-structopt     = "1.0"
 clap_flags        = "0.5"
+openssl-sys       = "0.9"
+
+[features]
+default = ["vendored"]
+vendored = ["openssl-sys/vendored"]
 
 [dev-dependencies]
 tempfile    = "3.1"
@@ -52,6 +57,3 @@ console     = "0.11"
 surf        = "1.0"
 criterion   = "0.3"
 futures     = "0.3"
-
-[features]
-default = []
