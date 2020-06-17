@@ -105,7 +105,7 @@ name = "async-h1"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "byte-pool 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-core 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "http-types 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -120,7 +120,7 @@ name = "async-sse"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "http-types 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 2.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -129,7 +129,7 @@ dependencies = [
 
 [[package]]
 name = "async-std"
-version = "1.6.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "async-attributes 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -192,7 +192,7 @@ version = "0.4.1"
 dependencies = [
  "anyhow 1.0.31 (registry+https://github.com/rust-lang/crates.io-index)",
  "assert_cmd 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap_flags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored_json 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -892,7 +892,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "anyhow 1.0.31 (registry+https://github.com/rust-lang/crates.io-index)",
- "async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "cookie 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "infer 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pin-project-lite 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1863,7 +1863,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "async-h1 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-sse 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "femme 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "http-types 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "kv-log-macro 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2195,7 +2195,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum async-attributes 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "efd3d156917d94862e779f356c5acae312b08fd3121e792c857d7928c8088423"
 "checksum async-h1 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7c966ee4e290159619bdc5282ba252749386552be066dbcf5b97adf612798a9a"
 "checksum async-sse 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aff0a3074c2c3cfd76417f6e03d5c99822d3ef37387af891e4a8bf46447ca870"
-"checksum async-std 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a45cee2749d880d7066e328a7e161c7470ced883b2fd000ca4643e9f1dd5083a"
+"checksum async-std 1.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b93c583a035d21e6d6f09adf48abfc55277bf48886406df370e5db6babe3ab98"
 "checksum async-task 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c17772156ef2829aadc587461c7753af20b7e8db1529bc66855add962a3b35d3"
 "checksum atty 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)" = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 "checksum autocfg 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
