@@ -12,7 +12,7 @@ COPY . .
 
 RUN make deps release-build TARGET="x86_64-unknown-linux-musl"
 
-FROM alpine:3.11
+FROM alpine:3.12.0
 
 RUN apk upgrade --update-cache --available && \
     apk add openssl && \
