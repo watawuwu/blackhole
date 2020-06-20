@@ -44,6 +44,8 @@ paw               = "1.0"
 paw-structopt     = "1.0"
 clap_flags        = "0.5"
 openssl-sys       = "0.9"
+# [workaround] issue #3
+aes-gcm           = "0.6"
 
 [features]
 default = ["vendored"]
