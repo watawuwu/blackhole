@@ -348,7 +348,7 @@ dependencies = [
  "surf 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tide 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -564,7 +564,7 @@ dependencies = [
  "percent-encoding 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "sha2 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2169,7 +2169,7 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.2.19"
+version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "const_fn 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2725,7 +2725,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum thread_local 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d40c6d1b69745a6ec6fb1ca717914848da4b44ae29d9b3080cbee91d72a69b14"
 "checksum tide 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "151b07f369a9152c2f93715ea0db8a7f7e2533bd2e52fbff1ea5bad7a88db541"
 "checksum time 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)" = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
-"checksum time 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)" = "80c1a1fd93112fc50b11c43a1def21f926be3c18884fad676ea879572da070a1"
+"checksum time 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)" = "2c2e31fb28e2a9f01f5ed6901b066c1ba2333c04b64dc61254142bafcb3feb2c"
 "checksum time-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9ae9b6e9f095bc105e183e3cd493d72579be3181ad4004fceb01adbe9eecab2d"
 "checksum time-macros-impl 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e5c3be1edfad6027c69f5491cf4cb310d1a71ecd6af742788c6ff8bced86b8fa"
 "checksum tinytemplate 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6d3dc76004a03cec1c5932bca4cdc2e39aaa798e3f82363dd94f9adf6098c12f"
