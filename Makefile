@@ -24,10 +24,12 @@ endif
 ifeq (,$(shell command -v cross 2> /dev/null))
     CARGO_BIN := cargo
 endif
+# cross command coudn't recognize environment variable
+CARGO_BUILD_TARGET_DIR  := $(CURDIR)//target
+CARGO_BUILD_TARGET      := x86_64-apple-darwin
 CARGO_OPTIONS           :=
-CARGO_SUB_OPTIONS       :=
+CARGO_SUB_OPTIONS       := --target $(CARGO_BUILD_TARGET) --target-dir $(CARGO_BUILD_TARGET_DIR)
 CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
-CARGO_BUILD_TARGET      :=
 CONTAINER_REPO          := watawuwu/blackhole
 CONTAINER_TAG           := latest
 APP_ARGS                := --port 8080 --address 0.0.0.0
@@ -36,6 +38,8 @@ APP_ARGS                := --port 8080 --address 0.0.0.0
 #===============================================================
 export RUST_LOG=$(LOG)
 export RUST_BACKTRACE=1
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
 
 # Task
 #===============================================================
@@ -52,22 +56,19 @@ dev-deps: ## Install dev depend tools
 	$(CARGO_COMMAND) install --force cargo-outdated
 
 run: fix fmt clippy ## Execute a main.rs
-	$(CARGO_COMMAND) run -- $(APP_ARGS)
+	$(CARGO_COMMAND) run -- $(APP_ARGS) $(CARGO_SUB_OPTIONS)
 
 test: fix fmt clippy ## Run the tests
-	$(CARGO_COMMAND) test -- --nocapture
-
-test4ci: fmt-check clippy ## Run the tests
-	$(CARGO_COMMAND) test
+	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS) -- --nocapture
 
 check: fix fmt ## Check syntax, but don't build object files
-	$(CARGO_COMMAND) check
+	$(CARGO_COMMAND) check $(CARGO_SUB_OPTIONS)
 
-build: check clippy ## Build all project
-	$(CARGO_COMMAND) build
+build: ## Build all project
+	$(CARGO_COMMAND) build $(CARGO_SUB_OPTIONS)
 
 release-build: ## Build all project
-	$(CARGO_COMMAND) build --release
+	$(CARGO_COMMAND) build --release $(CARGO_SUB_OPTIONS)
 
 check-lib: ## Check module version
 	$(CARGO_COMMAND) outdated -R
@@ -82,7 +83,7 @@ install: ## Install to $(PREFIX) directory
 	$(CARGO_COMMAND) install --force --root $(PREFIX) --path .
 
 fix: ## Run fmt
-	$(CARGO_COMMAND) fix --allow-staged --allow-dirty
+	$(CARGO_COMMAND) fix --allow-staged --allow-dirty $(CARGO_SUB_OPTIONS)
 
 fmt: ## Run fmt
 	$(CARGO_COMMAND) fmt
@@ -91,7 +92,7 @@ fmt-check: ## Run fmt
 	$(CARGO_COMMAND) fmt --all -- --check
 
 clippy: ## Run clippy
-	$(CARGO_COMMAND) clippy --all-features -- -D warnings
+	$(CARGO_COMMAND) clippy --all-features $(CARGO_SUB_OPTIONS) -- -D warnings
 
 bench: ## Run benchmark
 	$(CARGO_COMMAND) bench
