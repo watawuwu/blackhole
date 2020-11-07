@@ -358,7 +358,7 @@ dependencies = [
  "surf",
  "tempfile",
  "tide",
- "time 0.2.19",
+ "time 0.2.22",
 ]
 
 [[package]]
@@ -600,7 +600,7 @@ dependencies = [
  "percent-encoding",
  "rand",
  "sha2",
- "time 0.2.19",
+ "time 0.2.22",
 ]
 
 [[package]]
@@ -2421,9 +2421,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.2.19"
+version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80c1a1fd93112fc50b11c43a1def21f926be3c18884fad676ea879572da070a1"
+checksum = "55b7151c9065e80917fbf285d9a5d1432f60db41d170ccafc749a136b41a93af"
 dependencies = [
  "const_fn",
  "libc",
