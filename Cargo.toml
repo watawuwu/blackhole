@@ -32,7 +32,7 @@ log               = "0.4"
 chrono            = { version = "0.4", features = ["serde"] }
 tide              = "0.11"
 # [workaround] tide 0.10 dep http-types 2.1, but http-types has bub
-http-types        = "2.4"
+http-types        = "2.7"
 async-std         = { version = "1.6", features = ["attributes"] }
 serde             = "1.0"
 serde_json        = "1.0"
