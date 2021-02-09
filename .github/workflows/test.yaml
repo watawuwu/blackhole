@@ -39,12 +39,18 @@ jobs:
     - name: Setup code
       uses: actions/checkout@v2
 
+    - name: Install GNU tar
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install gnu-tar
+        echo PATH="/usr/local/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+
     - name: Install musl tools
       if: matrix.target == 'x86_64-unknown-linux-musl'
       run: |
         sudo apt install -y musl-tools libssl-dev --no-install-recommends
-        echo ::set-env name=OPENSSL_LIB_DIR::/usr/lib/x86_64-linux-gnu/
-        echo ::set-env name=OPENSSL_INCLUDE_DIR::/usr/include/openssl/
+        echo "OPENSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu/" >> $GITHUB_ENV
+        echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl/" >> $GITHUB_ENV
 
     # https://github.com/actions/cache/blob/master/examples.md#rust---cargo
     - name: Cache cargo files
