@@ -30,7 +30,7 @@ structopt         = "0.3"
 exitcode          = "1.1"
 log               = "0.4"
 chrono            = { version = "0.4", features = ["serde"] }
-tide              = "0.11"
+tide              = "0.16"
 # [workaround] tide 0.10 dep http-types 2.1, but http-types has bub
 http-types        = "2.10"
 async-std         = { version = "1.6", features = ["attributes"] }
@@ -52,7 +52,7 @@ default = ["vendored"]
 vendored = ["openssl-sys/vendored"]
 
 [dev-dependencies]
-tempfile    = "3.1"
+tempfile    = "3.2"
 assert_cmd  = "1.0"
 predicates  = "1.0"
 console     = "0.14"
