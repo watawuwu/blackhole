@@ -1,6 +1,3 @@
-use std::future::Future;
-use std::pin::Pin;
-
 use crate::access_log::AccessLog;
 use log::*;
 use std::fmt::Debug;
@@ -14,10 +11,10 @@ impl AccessLogMiddleware {
         Self {}
     }
 
-    async fn log<'a, State: Send + Sync + 'static>(
-        &'a self,
+    async fn log<State: Send + Sync + 'static>(
+        &self,
         req: Request<State>,
-        _next: Next<'a, State>,
+        _next: Next<'_, State>,
     ) -> tide::Result {
         let access = AccessLog::from(req).await?;
         if let Err(err) = access.log() {
@@ -27,13 +24,10 @@ impl AccessLogMiddleware {
     }
 }
 
-impl<State: Send + Sync + 'static> Middleware<State> for AccessLogMiddleware {
-    fn handle<'a>(
-        &'a self,
-        ctx: Request<State>,
-        next: Next<'a, State>,
-    ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-        Box::pin(async move { self.log(ctx, next).await })
+#[tide::utils::async_trait]
+impl<State: Clone + Send + Sync + 'static> Middleware<State> for AccessLogMiddleware {
+    async fn handle(&self, request: Request<State>, next: Next<'_, State>) -> tide::Result {
+        self.log(request, next).await
     }
 }
 
@@ -72,7 +66,7 @@ mod tests {
         log_init(tx)?;
 
         let mut app = tide::new();
-        app.middleware(AccessLogMiddleware::new());
+        app.with(AccessLogMiddleware::new());
 
         let mut req = Request::new(Method::Get, Url::parse("http://localhost/foo?test=1")?);
         req.append_header("Content-Type", "text/plain");
