@@ -52,7 +52,7 @@ default = ["vendored"]
 vendored = ["openssl-sys/vendored"]
 
 [dev-dependencies]
-tempfile    = "3.1"
+tempfile    = "3.2"
 assert_cmd  = "1.0"
 predicates  = "1.0"
 console     = "0.14"
