@@ -62,8 +62,8 @@ impl AccessLog {
             path,
             query,
             addr,
-            headers,
             body,
+            headers,
             method,
             ts,
         })
