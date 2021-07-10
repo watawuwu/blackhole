@@ -1,4 +1,6 @@
-FROM ghcr.io/watawuwu/rust:1.47.0 AS builder
+FROM rust:1.53 AS builder
+
+WORKDIR /app
 
 ADD Makefile .
 ADD Cargo.toml .
@@ -11,14 +13,10 @@ RUN mkdir src benches && \
 
 COPY . .
 
-RUN make deps release-build CARGO_BUILD_TARGET="x86_64-unknown-linux-musl" CARGO_BUILD_TARGET_DIR="/usr/local/target"
+RUN make deps release-build CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu
 
-FROM alpine:3.14.0
+FROM gcr.io/distroless/cc
 
-RUN apk upgrade --update-cache --available && \
-    apk add openssl && \
-    rm -rf /var/cache/apk/*
+COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/blackhole /bin/blackhole
 
-COPY --from=builder /usr/local/target/x86_64-unknown-linux-musl/release/blackhole /bin/blackhole
-
-CMD ["/bin/blackhole"]
+ENTRYPOINT ["/bin/blackhole"]
