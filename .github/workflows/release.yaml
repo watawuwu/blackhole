@@ -54,18 +54,12 @@ jobs:
       matrix:
         target:
         - x86_64-unknown-linux-gnu
-        - x86_64-unknown-linux-musl
         - x86_64-apple-darwin
-        - x86_64-pc-windows-msvc
         include:
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
-        - target: x86_64-unknown-linux-musl
-          os: ubuntu-latest
         - target: x86_64-apple-darwin
           os: macos-latest
-        - target: x86_64-pc-windows-msvc
-          os: windows-latest
 
     runs-on: ${{ matrix.os }}
 
@@ -76,11 +70,6 @@ jobs:
     - name: Get tag
       id: get_tag
       uses: olegtarasov/get-tag@v2
-
-    - name: Install musl tools
-      if: matrix.target == 'x86_64-unknown-linux-musl'
-      run: |
-        sudo apt install -qq -y musl-tools --no-install-recommends
 
     - name: Setup Rust toolchain
       uses: actions-rs/toolchain@v1
@@ -99,7 +88,7 @@ jobs:
     - name: Create artifact
       shell: bash -x {0}
       run: |
-        tar -acvf ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}{,.exe}
+        tar -acvf ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}
         set -e
         ls -la ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz
 
