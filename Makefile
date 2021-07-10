@@ -25,7 +25,7 @@ ifeq (,$(shell command -v cross 2> /dev/null))
     CARGO_BIN := cargo
 endif
 # cross command coudn't recognize environment variable
-CARGO_BUILD_TARGET_DIR  := $(CURDIR)//target
+CARGO_BUILD_TARGET_DIR  := $(CURDIR)/target
 CARGO_BUILD_TARGET      := x86_64-apple-darwin
 CARGO_OPTIONS           :=
 CARGO_SUB_OPTIONS       := --target $(CARGO_BUILD_TARGET) --target-dir $(CARGO_BUILD_TARGET_DIR)
@@ -56,7 +56,7 @@ dev-deps: ## Install dev depend tools
 	$(CARGO_COMMAND) install --force cargo-outdated
 
 run: fix fmt clippy ## Execute a main.rs
-	$(CARGO_COMMAND) run -- $(APP_ARGS) $(CARGO_SUB_OPTIONS)
+	$(CARGO_COMMAND) run $(CARGO_SUB_OPTIONS) -- $(APP_ARGS)
 
 test: fix fmt clippy ## Run the tests
 	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS) -- --nocapture
