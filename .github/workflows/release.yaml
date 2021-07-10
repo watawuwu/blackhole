@@ -67,10 +67,6 @@ jobs:
     - name: Setup code
       uses: actions/checkout@v2
 
-    - name: Get tag
-      id: get_tag
-      uses: olegtarasov/get-tag@v2
-
     - name: Setup Rust toolchain
       uses: actions-rs/toolchain@v1
       with:
@@ -88,9 +84,10 @@ jobs:
     - name: Create artifact
       shell: bash -x {0}
       run: |
-        tar -acvf ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}
+        tag=${GITHUB_REF#refs/tags/}
+        tar -acvf ${{ env.NAME }}-$tag-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}
         set -e
-        ls -la ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz
+        ls -la ${{ env.NAME }}-$tag-${{ matrix.target }}.tar.gz
 
     - name: Load release URL file
       uses: actions/download-artifact@v1
