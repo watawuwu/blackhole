@@ -2,7 +2,10 @@ mod args;
 
 use anyhow::Result;
 use args::Args;
+use async_std::prelude::*;
 use blackhole_bin::server;
+use signal_hook::consts::signal::*;
+use signal_hook_async_std::Signals;
 use std::io;
 
 #[async_std::main]
@@ -15,6 +18,19 @@ async fn main(args: Args) -> Result<()> {
         .chain(out)
         .apply()?;
 
-    server::serve(args.socket_addr()?).await?;
+    let stop = async {
+        let signals = Signals::new(&[SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
+        let mut signals = signals.fuse();
+        let _ = signals.next().await;
+        println!("Termination signal received, stopping server...");
+        Ok(())
+    };
+
+    let app = async move {
+        server::serve(args.socket_addr()?).await?;
+        Ok::<_, anyhow::Error>(())
+    };
+
+    app.race(stop).await?;
     Ok(())
 }
