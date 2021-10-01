@@ -451,7 +451,7 @@ dependencies = [
  "surf",
  "tempfile",
  "tide",
- "time 0.2.27",
+ "time 0.3.3",
 ]
 
 [[package]]
@@ -2610,6 +2610,15 @@ dependencies = [
  "time-macros",
  "version_check",
  "winapi",
+]
+
+[[package]]
+name = "time"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cde1cf55178e0293453ba2cca0d5f8392a922e52aa958aee9c28ed02becc6d03"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
