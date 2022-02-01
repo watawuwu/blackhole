@@ -55,7 +55,7 @@ vendored = ["openssl-sys/vendored"]
 
 [dev-dependencies]
 tempfile    = "3.2"
-assert_cmd  = "1.0"
+assert_cmd  = "2.0"
 predicates  = "1.0"
 console     = "0.14"
 surf        = "2.2"
