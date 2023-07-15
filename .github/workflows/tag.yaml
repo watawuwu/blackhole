@@ -26,6 +26,8 @@ jobs:
 
     - name: Setup release tools
       run: |
+        mkdir -p ~/.cargo/bin
+        env
         url=$(gh release view -R crate-ci/cargo-release --json assets --jq '.assets[] | select(.name | contains("linux")) | .url')
         curl -fsSL $url -o- | tar xz -C ~/.cargo/bin
 
