@@ -3,7 +3,7 @@
 blackhole is a server that responds to any request with http status code 200.
 For example, you can check what kind of request is notified by GitHub webhook from the access log.
 
-![Github Action](https://github.com/watawuwu/blackhole/workflows/Test/badge.svg?branch=master)
+![Github Action](https://github.com/watawuwu/blackhole/workflows/Test/badge.svg?branch=main)
 [![Latest version](https://img.shields.io/crates/v/blackhole-bin.svg)](https://crates.io/crates/blackhole-bin)
 [![Documentation](https://docs.rs/blackhole-bin/badge.svg)](https://docs.rs/crate/blackhole-bin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/watawuwu/blackhole)
@@ -15,113 +15,46 @@ For example, you can check what kind of request is notified by GitHub webhook fr
 - Usage
 
 ```
-blackhole-bin 0.4.0
-USAGE:
-    blackhole [FLAGS] [OPTIONS]
+Usage: blackhole [OPTIONS]
 
-FLAGS:
-    -h, --help
-            Prints help information
-
-        --log-all
-            Enable log output from dependencies
-
-    -P, --pretty
-            Enable pretty printing
-
-    -q, --quiet
-            Suppress all log output
-
-    -V, --version
-            Prints version information
-
-    -v, --verbosity
-            Print more log output
-
-
-OPTIONS:
-    -a, --address <address>
-            Network address [default: 127.0.0.1]
-
-    -p, --port <port>
-            Insecure HTTP port [env: PORT=]  [default: 80]
-
+Options:
+  -c, --no-color
+          Color mode off
+  -a, --address <ADDRESS>
+          Listen address [default: 127.0.0.1]
+  -p, --port <PORT>
+          Listen port [env: PORT=] [default: 8080]
+  -v, --verbose...
+          More output per occurrence
+  -q, --quiet...
+          Less output per occurrence
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 - Launch server
 
 ```
-# listen port is 3000
-❯❯ blackhole --port 3000
+# listen port is 8080
+$ blackhole
+Start server. addr: 127.0.0.1:8080
 
 ---
 
 # Other terinal
-❯❯ curl -v  http://127.0.0.1:3000/
-> GET / HTTP/1.1
-> Host: 127.0.0.1:3000
-> User-Agent: curl/7.54.0
-> Accept: */*
->
-< HTTP/1.1 200 OK
-< content-length: 0
-< date: Sat, 17 Aug 2019 14:33:43 GMT
-<
-
-❯❯ curl -v -XPOST http://127.0.0.1:3000/
-> POST / HTTP/1.1
-> Host: 127.0.0.1:3000
-> User-Agent: curl/7.54.0
-> Accept: */*
->
-< HTTP/1.1 200 OK
-< content-length: 0
-< date: Sat, 17 Aug 2019 14:34:01 GMT
-<
-
-❯❯ curl -d'param=aaa' -XPOST http://127.0.0.1:3000/xxx/yyy
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
-* Connected to 127.0.0.1 (127.0.0.1) port 3000 (#0)
-> POST /xxx/yyy HTTP/1.1
-> Host: 127.0.0.1:3000
-> User-Agent: curl/7.54.0
-> Accept: */*
-> Content-Length: 9
-> Content-Type: application/x-www-form-urlencoded
->
-* upload completely sent off: 9 out of 9 bytes
-< HTTP/1.1 200 OK
-< content-length: 0
-< date: Sat, 17 Aug 2019 14:33:18 GMT
-<
-
-❯❯ curl -v -d '{"test": 1}' -H 'application/json' -XPOST http://127.0.0.1:3000/json
-Note: Unnecessary use of -X or --request, POST is already inferred.
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
-* Connected to 127.0.0.1 (127.0.0.1) port 3000 (#0)
-> POST /json HTTP/1.1
-> Host: 127.0.0.1:3000
-> User-Agent: curl/7.64.1
-> Accept: */*
-> Content-Length: 11
-> Content-Type: application/x-www-form-urlencoded
->
-* upload completely sent off: 11 out of 11 bytes
-< HTTP/1.1 200 OK
-< content-length: 0
-< date: Fri, 29 May 2020 07:54:16 GMT
-<
-* Connection #0 to host 127.0.0.1 left intact
-* Closing connection 0
+$ curl -v http://127.0.0.1:8080/
+$ curl -v -XPOST http://127.0.0.1:8080/
+$ curl -d'param=aaa' -XPOST http://127.0.0.1:8080/xxx/yyy
+$ curl -v -d '{"test": 1}' -H 'application/json' -XPOST http://127.0.0.1:8080/json
 
 ---
 # access log
-{"path":"/","query":{},"addr":"127.0.0.1:3000","headers":{"accept":"*/*","user-agent":"curl/7.64.1","host":"127.0.0.1:3000"},"method":"GET","ts":"2020-05-29T16:52:11.600380+09:00"}
-{"path":"/","query":{},"addr":"127.0.0.1:3000","headers":{"accept":"*/*","host":"127.0.0.1:3000","user-agent":"curl/7.64.1"},"method":"POST","ts":"2020-05-29T16:52:24.620505+09:00"}
-{"path":"/xxx/yyy","query":{},"addr":"127.0.0.1:3000","body":"param=aaa","headers":{"user-agent":"curl/7.64.1","accept":"*/*","host":"127.0.0.1:3000","content-type":"application/x-www-form-urlencoded","content-length":"9"},"method":"POST","ts":"2020-05-29T16:52:52.644463+09:00"}
-{"path":"/json","query":{},"addr":"127.0.0.1:3000","body":{"test":1},"headers":{"content-type":"application/x-www-form-urlencoded","content-length":"11","user-agent":"curl/7.64.1","host":"127.0.0.1:3000","accept":"*/*"},"method":"POST","ts":"2020-05-29T16:53:34.934432+09:00"}
+{"headers":{"accept":"*/*","user-agent":"curl/7.77.0"},"host":"127.0.0.1:8080","method":"GET","path":"/","query":"","req":{"size":0},"scheme":"http","timestamp":"2023-07-15T05:23:50.356541Z"}
+{"headers":{"accept":"*/*","user-agent":"curl/7.77.0"},"host":"127.0.0.1:8080","method":"POST","path":"/","query":"","req":{"size":0},"scheme":"http","timestamp":"2023-07-15T05:23:53.42902Z"}
+{"headers":{"accept":"*/*","content-length":"9","content-type":"application/x-www-form-urlencoded","user-agent":"curl/7.77.0"},"host":"127.0.0.1:8080","method":"POST","path":"/xxx/yyy","query":"","req":{"body":"param=aaa","size":9},"scheme":"http","timestamp":"2023-07-15T05:23:56.055892Z"}
+{"headers":{"accept":"*/*","content-length":"11","content-type":"application/x-www-form-urlencoded","user-agent":"curl/7.77.0"},"host":"127.0.0.1:8080","method":"POST","path":"/json","query":"","req":{"body":{"test":1},"size":11},"scheme":"http","timestamp":"2023-07-15T05:24:00.304255Z"}
 ```
 
 ## Installing
@@ -129,15 +62,7 @@ Note: Unnecessary use of -X or --request, POST is already inferred.
 - Install binary directly
 
 ```
-❯❯ curl --tlsv1.2 -sSf https://raw.githubusercontent.com/watawuwu/blackhole/master/install.sh | sh
-```
-
-- Compile and install
-
-```
-❯❯ git clone https://github.com/watawuwu/blackhole.git && cd blackhole
-
-❯❯ make install
+❯❯ curl --tlsv1.2 -sSf https://raw.githubusercontent.com/watawuwu/blackhole/main/install.sh | sh
 ```
 
 - Install with cargo

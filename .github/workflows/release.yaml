@@ -4,7 +4,6 @@ on:
   push:
     tags:
      - '*.*.*'
-
 env:
   NAME: blackhole
 
@@ -15,97 +14,51 @@ jobs:
 
     steps:
     - name: Setup code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Fetch all tags
-      run: git fetch origin +refs/tags/*:refs/tags/*
-
-    - name: Create Changelog
-      id: create_changelog
-      uses: watawuwu/ccclog@gha-v0
+      uses: actions/checkout@v3
+      with: { fetch-depth: 0 }
 
     - name: Create release
       id: create_release
-      uses: actions/create-release@v1
+      run: gh release create ${{ github.ref_name }} --generate-notes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        draft: false
-        prerelease: false
-        body: ${{ steps.create_changelog.outputs.changelog }}
-
-    - name: Output release URL file
-      run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-
-    - name: Save release URL file for publish
-      uses: actions/upload-artifact@v1
-      with:
-        name: release
-        path: release_url.txt
 
   build_and_publish:
     name: Build and publish
     needs: [create_github_release]
     strategy:
       matrix:
-        target:
-        - x86_64-unknown-linux-gnu
-        - x86_64-apple-darwin
         include:
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
         - target: x86_64-apple-darwin
+          os: macos-latest
+        - target: aarch64-apple-darwin
           os: macos-latest
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - name: Setup code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: ${{ matrix.target }}
-        override: true
+      run: |
+        rustup set profile minimal
+        rustup install stable
+        rustup override set stable
+        rustup target add ${{ matrix.target }}
 
     - name: Build
-      uses: actions-rs/cargo@v1.0.1
-      with:
-        command: build
-        args: --release --target=${{ matrix.target }}
+      run: cargo build --release --target=${{ matrix.target }}
 
     - name: Create artifact
-      shell: bash -x {0}
       run: |
-        tag=${GITHUB_REF#refs/tags/}
-        tar -acvf ${{ env.NAME }}-$tag-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}
+        tar -acvf ${{ env.NAME }}-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release ${{ env.NAME }}
         set -e
-        ls -la ${{ env.NAME }}-$tag-${{ matrix.target }}.tar.gz
+        ls -la ${{ env.NAME }}-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
 
-    - name: Load release URL file
-      uses: actions/download-artifact@v1
-      with:
-        name: release
-
-    - name: Get release file name & upload URL
-      id: get_release_info
-      shell: bash
-      run: |
-        upload_url=$(cat release/release_url.txt)
-        echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
-
-    - uses: actions/upload-release-asset@v1
+    - name: Upload assets
+      run: gh release upload ${{ github.ref_name }} ./${{ env.NAME }}-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ env.UPLOAD_URL }}
-        asset_path: ./${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz
-        asset_name: ${{ env.NAME }}-${{ steps.get_tag.outputs.tag }}-${{ matrix.target }}.tar.gz
-        asset_content_type: application/gzip

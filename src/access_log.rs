@@ -1,25 +1,34 @@
-use chrono::prelude::*;
+use anyhow::Result;
 
-use anyhow::*;
-use colored_json::{ColorMode, ColoredFormatter, CompactFormatter};
-use serde::Serialize;
 use std::collections::HashMap;
 
+use actix_web::body::to_bytes;
+use actix_web::dev::ServiceRequest;
+use actix_web::{web, HttpMessage};
 use log::*;
+use serde::Serialize;
 use serde_json::Value;
-use std::str::FromStr;
-use tide::Request;
+use time::serde::rfc3339;
+use time::OffsetDateTime;
 
 #[derive(Debug, Serialize)]
 pub struct AccessLog {
+    #[serde(with = "rfc3339")]
+    timestamp: OffsetDateTime,
+    host: String,
+    method: String,
     path: String,
-    query: HashMap<String, String>,
-    addr: String,
+    scheme: String,
+    headers: HashMap<String, String>,
+    query: String,
+    req: Req,
+}
+
+#[derive(Debug, Serialize)]
+struct Req {
+    size: usize,
     #[serde(flatten)]
     body: Option<Body>,
-    headers: HashMap<String, String>,
-    method: String,
-    ts: DateTime<Local>,
 }
 
 #[derive(Debug, Serialize)]
@@ -31,56 +40,73 @@ enum Body {
 }
 
 impl AccessLog {
-    pub async fn from<State: Send + Sync + 'static>(mut req: Request<State>) -> tide::Result<Self> {
+    pub async fn from(req: &mut ServiceRequest) -> Self {
         let method = req.method().to_string();
-        let path = req.url().path().to_string();
-        let query = req.query()?;
-        let addr = req.local_addr().map(String::from).unwrap_or_default();
-        let content_type = req
-            .content_type()
-            .map(|x| x.to_string())
-            .unwrap_or_default();
+        let path = req.uri().path().to_string();
+        let query = req.query_string().to_string();
+        let host = req.connection_info().host().to_string();
+        let scheme = req.connection_info().scheme().to_string();
+        let content_type = req.content_type().to_string();
+
+        let buf = req.extract::<web::Bytes>().await.unwrap();
 
         let body = if Self::is_record_body(&content_type) {
-            let body = req.body_string().await?;
-            let body = match serde_json::Value::from_str(&body) {
+            let body = match serde_json::from_slice::<Value>(&buf) {
                 Ok(v) => Body::JsonValue(v),
-                Err(_) => Body::Text(body),
+                Err(_) => Body::Text(
+                    std::str::from_utf8(buf.as_ref())
+                        .unwrap_or_default()
+                        .to_string(),
+                ),
             };
             Some(body)
         } else {
             None
         };
+
+        let size = match to_bytes(buf).await {
+            Ok(buf) => buf.len(),
+            Err(err) => {
+                error!("err {:?}", err);
+                0usize
+            }
+        };
+
         let headers = req
+            .headers()
             .iter()
-            .map(|(k, v)| (String::from(k.as_str()), String::from(v.as_str())))
+            .filter(|(k, _)| k.as_str() != "host")
+            .map(|(k, v)| {
+                (
+                    String::from(k.as_str()),
+                    String::from(v.to_str().unwrap_or_default()),
+                )
+            })
             .collect();
 
-        let ts = Local::now();
+        let timestamp = OffsetDateTime::now_utc();
 
-        Ok(AccessLog {
-            path,
-            query,
-            addr,
-            body,
-            headers,
+        AccessLog {
+            timestamp,
+            host,
             method,
-            ts,
-        })
+            path,
+            scheme,
+            headers,
+            query,
+            req: Req { size, body },
+        }
     }
 
     pub fn log(&self) -> Result<()> {
         let value = serde_json::to_value(self)?;
-        let formatter = ColoredFormatter::new(CompactFormatter {});
-        let json = formatter.to_colored_json(&value, ColorMode::On)?;
-        info!("{}", json);
+        info!("{}", value.to_string());
         Ok(())
     }
 
     fn is_record_body(content_type: &str) -> bool {
         content_type.contains("text/")
             || content_type.contains("application/json")
-            || content_type.contains("application/xml")
             || content_type.contains("application/x-www-form-urlencoded")
     }
 }

@@ -1,11 +1,13 @@
-use crate::middleware::AccessLogMiddleware;
+use actix_web::{App, HttpServer};
 use anyhow::*;
-use std::net::ToSocketAddrs;
+use std::net::SocketAddr;
 
-pub async fn serve(addr: impl ToSocketAddrs) -> Result<()> {
-    let mut app = tide::new();
-    app.with(AccessLogMiddleware::new());
-    app.listen(addr.to_socket_addrs()?.collect::<Vec<_>>())
+use crate::middleware::StructuredLogging;
+
+pub async fn serve(addr: SocketAddr) -> Result<()> {
+    HttpServer::new(|| App::new().wrap(StructuredLogging))
+        .bind(addr)?
+        .run()
         .await?;
     Ok(())
 }

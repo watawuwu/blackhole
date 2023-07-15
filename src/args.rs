@@ -1,62 +1,46 @@
 use anyhow::Result;
+use clap::Parser;
+use clap_verbosity_flag::InfoLevel;
 use log::LevelFilter;
 use std::net::{Ipv4Addr, SocketAddr};
 
-#[derive(structopt::StructOpt, paw_structopt::StructOpt, Debug)]
-#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
+#[derive(Parser, Debug)]
+#[command(author, version, about, next_line_help = true, long_about = None)]
 pub struct Args {
-    #[structopt(flatten)]
-    address: clap_flags::Address,
-    #[structopt(flatten)]
-    logger: clap_flags::Log,
-    #[structopt(flatten)]
-    port: clap_flags::Port,
+    /// Color mode off
+    #[arg(
+        short = 'c',
+        long = "no-color",
+        default_value = "false",
+        action(clap::ArgAction::SetTrue)
+    )]
+    pub no_color: bool,
+
+    /// Listen address
+    #[arg(short = 'a', long = "address", default_value = "127.0.0.1")]
+    address: String,
+
+    /// Listen port
+    #[arg(short = 'p', long = "port", env = "PORT", default_value = "8080", value_parser = clap::value_parser!(u16).range(1..))]
+    port: u16,
+
+    #[clap(flatten)]
+    verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
 }
 
 impl Args {
     pub fn socket_addr(&self) -> Result<SocketAddr> {
-        let ipv4: Ipv4Addr = self.address.address.parse()?;
-        Ok((ipv4, self.port.port).into())
+        let ipv4: Ipv4Addr = self.address.parse()?;
+        Ok((ipv4, self.port).into())
     }
 
     pub fn log_level_filter(&self) -> LevelFilter {
-        self.logger
-            .log_level()
-            .map(|x| x.to_level_filter())
-            .unwrap_or_else(|| LevelFilter::Info)
+        self.verbose.log_level_filter()
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use anyhow::Result;
-    use structopt::StructOpt;
-
-    fn log_level_ok(test_args: Vec<&str>, expect: LevelFilter) -> Result<()> {
-        let raw_args = test_args.into_iter().map(String::from).collect::<Vec<_>>();
-
-        let app = Args::clap();
-        let clap = app.get_matches_from_safe(raw_args)?;
-        let args = Args::from_clap(&clap);
-        assert_eq!(args.log_level_filter(), expect);
-        Ok(())
-    }
-
-    #[test]
-    fn log_level() -> Result<()> {
-        let raw_args = vec!["blackhole"];
-        log_level_ok(raw_args, LevelFilter::Info)?;
-
-        let raw_args = vec!["blackhole", "-v"];
-        log_level_ok(raw_args, LevelFilter::Debug)?;
-
-        let raw_args = vec!["blackhole", "-vv"];
-        log_level_ok(raw_args, LevelFilter::Trace)?;
-
-        let raw_args = vec!["blackhole", "-vvv"];
-        log_level_ok(raw_args, LevelFilter::Trace)?;
-
-        Ok(())
-    }
+#[test]
+fn verify_cli() {
+    use clap::CommandFactory;
+    Args::command().debug_assert()
 }
