@@ -18,60 +18,46 @@ jobs:
   test:
     strategy:
       matrix:
-        target:
-        - x86_64-unknown-linux-gnu
-        - x86_64-apple-darwin
         include:
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
         - target: x86_64-apple-darwin
+          os: macos-latest
+        - target: aarch64-apple-darwin
           os: macos-latest
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - name: Setup code
-      uses: actions/checkout@v2
-
-    - name: Install GNU tar
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install gnu-tar
-        echo PATH="/usr/local/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+      uses: actions/checkout@v3
 
     # https://github.com/actions/cache/blob/master/examples.md#rust---cargo
     - name: Cache cargo files
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
         key: ${{ matrix.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Setup Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: ${{ matrix.target }}
-        override: true
-        components: rustfmt, clippy
+      run: |
+        rustup set profile minimal
+        rustup install stable
+        rustup override set stable
+        rustup component add clippy
+        rustup component add rustfmt
+        rustup target add ${{ matrix.target }}
 
     - name: Test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --target=${{ matrix.target }}
+      run: cargo test --target=${{ matrix.target }}
 
     - name: Check format
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --all -- --check
+      run: cargo fmt --all -- --check
 
     - name: Run lint
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-        args: --all-features -- -D warnings
+      run: cargo clippy --all-features -- -D warnings

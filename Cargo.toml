@@ -4,7 +4,7 @@ version     = "0.5.0"
 authors     = ["Wataru Matsui <watawuwu@3bi.tech>"]
 exclude     = ["examples/*", "tests/*", "*.png", "perf/*", "assets", "Makefile", "tmp.rs"]
 readme      = "README.md"
-edition     = "2018"
+edition     = "2021"
 license     = "MIT OR Apache-2.0"
 description = "blackhole is a server that responds to any request with http status code 200"
 repository  = "https://github.com/watawuwu/blackhole"
@@ -15,10 +15,6 @@ categories  = ["command-line-utilities"]
 name = "blackhole"
 path = "src/main.rs"
 
-[[bench]]
-name = "benchmark"
-harness = false
-
 [badges]
 is-it-maintained-issue-resolution = { repository = "watawuwu/blackhole", service = "github" }
 is-it-maintained-open-issues      = { repository = "watawuwu/blackhole", service = "github" }
@@ -26,38 +22,17 @@ maintenance                       = { status = "passively-maintained" }
 
 [dependencies]
 anyhow                = "1.0"
-structopt             = "0.3"
+clap                  = { version = "4", features = ["derive", "env"] }
+clap-verbosity-flag   = "2"
 exitcode              = "1.1"
 log                   = "0.4"
-chrono                = { version = "0.4", features = ["serde"] }
-tide                  = "0.16"
-# [workaround] tide 0.10 dep http-types 2.1, but http-types has bub
-http-types            = "2.11"
-async-std             = { version = "1.6", features = ["attributes"] }
-serde                 = "1.0"
+serde                 = { version = "1.0", features = ["derive"] }
 serde_json            = "1.0"
-time                  = "0.2"
-colored_json          = "2.1"
-json-color            = "0.7"
+time                  = { version = "0.3", features = ["serde", "macros"] }
+colored_json          = "3.2"
 fern                  = "0.6"
-paw                   = "1.0"
-paw-structopt         = "1.0"
-clap_flags            = "0.5"
-openssl-sys           = "0.9"
-# [workaround] issue #3
-aes-gcm               = "0.9"
-signal-hook-async-std = "0.2"
 signal-hook           = "0.3"
-
-[features]
-default = ["vendored"]
-vendored = ["openssl-sys/vendored"]
-
-[dev-dependencies]
-tempfile    = "3.2"
-assert_cmd  = "1.0"
-predicates  = "1.0"
-console     = "0.14"
-surf        = "2.2"
-criterion   = "0.3"
-futures     = "0.3"
+signal-hook-tokio     = { version = "0.3", features = ["futures-v0_3"] }
+actix-web             = "4"
+tokio                 = { version = "1", features = ["full"]}
+futures-util          = "0.3"

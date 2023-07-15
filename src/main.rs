@@ -1,36 +1,40 @@
+use anyhow::Result;
+use clap::Parser;
+
+use signal_hook::consts::signal::*;
+use signal_hook_tokio::Signals;
+
+use args::Args;
+use blackhole_bin::logger;
+use blackhole_bin::server;
+use futures_util::StreamExt;
 mod args;
 
-use anyhow::Result;
-use args::Args;
-use async_std::prelude::*;
-use blackhole_bin::server;
-use signal_hook::consts::signal::*;
-use signal_hook_async_std::Signals;
-use std::io;
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::try_parse()?;
 
-#[async_std::main]
-#[paw::main]
-async fn main(args: Args) -> Result<()> {
-    let out = io::stdout();
-    fern::Dispatch::new()
-        .level(args.log_level_filter())
-        .level_for("tide", log::LevelFilter::Warn)
-        .chain(out)
-        .apply()?;
+    logger::init(args.no_color, args.log_level_filter())?;
 
-    let stop = async {
-        let signals = Signals::new(&[SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
-        let mut signals = signals.fuse();
-        let _ = signals.next().await;
-        println!("Termination signal received, stopping server...");
-        Ok(())
-    };
-
-    let app = async move {
-        server::serve(args.socket_addr()?).await?;
-        Ok::<_, anyhow::Error>(())
-    };
-
-    app.race(stop).await?;
+    tokio::select! {
+        _ = async {
+            let mut signals = Signals::new([SIGHUP, SIGTERM, SIGINT, SIGQUIT])?;
+            let handle = signals.handle();
+            let _ = signals.next().await;
+            handle.close();
+            Ok::<_, anyhow::Error>(())
+        } => {
+            eprintln!("Termination signal received, stopping server...");
+        },
+        res = async move {
+            let addr = args.socket_addr()?;
+            eprintln!("Start server. addr: {:?}", &addr);
+            server::serve(addr).await?;
+            Ok::<_, anyhow::Error>(())
+        } => {
+            eprintln!("Stop server");
+            res?
+        },
+    }
     Ok(())
 }

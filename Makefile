@@ -3,108 +3,73 @@
 SHELL := /bin/bash
 OS    := $(shell uname | tr A-Z a-z)
 
-# Const
-#===============================================================
-name := blackhole
-
 # Option
 #===============================================================
-SHELL                   := /bin/bash
-LOG_LEVEL               := debug
-PREFIX                  := $(HOME)/.cargo
-LOG                     := $(shell echo '$(name)' | tr - _)=$(LOG_LEVEL)
-TARGET                  := x86_64-apple-darwin
-CARGO_BIN               := cross
-ifneq (,$(findstring mingw64, $(OS)))
-    CARGO_BIN := cargo
-endif
-ifneq (,$(findstring darwin, $(OS)))
-    CARGO_BIN := cargo
-endif
-ifeq (,$(shell command -v cross 2> /dev/null))
-    CARGO_BIN := cargo
-endif
-# cross command coudn't recognize environment variable
-CARGO_BUILD_TARGET_DIR  := $(CURDIR)/target
-CARGO_BUILD_TARGET      := x86_64-apple-darwin
 CARGO_OPTIONS           :=
-CARGO_SUB_OPTIONS       := --target $(CARGO_BUILD_TARGET) --target-dir $(CARGO_BUILD_TARGET_DIR)
-CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
-CONTAINER_REPO          := watawuwu/blackhole
-CONTAINER_TAG           := latest
+CARGO_SUB_OPTIONS       :=
 APP_ARGS                := --port 8080 --address 0.0.0.0
 
 # Environment
 #===============================================================
-export RUST_LOG=$(LOG)
 export RUST_BACKTRACE=1
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
 
 # Task
 #===============================================================
 deps: ## Install depend tools
-ifneq ($(CARGO_BUILD_TARGET),)
-	rustup target add $(CARGO_BUILD_TARGET)
-endif
 	rustup component add rustfmt
 	rustup component add clippy
-	rustup show # for container
-
-dev-deps: ## Install dev depend tools
 	rustup component add rust-src
-	$(CARGO_COMMAND) install --force cargo-outdated
+	cargo $(CARGO_OPTIONS) install --force cargo-outdated
+	cargo $(CARGO_OPTIONS) install --force cargo-audit
+	rustup show
 
 run: fix fmt clippy ## Execute a main.rs
-	$(CARGO_COMMAND) run $(CARGO_SUB_OPTIONS) -- $(APP_ARGS)
+	cargo $(CARGO_OPTIONS) run $(CARGO_SUB_OPTIONS) -- $(APP_ARGS)
 
 test: fix fmt clippy ## Run the tests
-	$(CARGO_COMMAND) test $(CARGO_SUB_OPTIONS) -- --nocapture
+	cargo $(CARGO_OPTIONS) test $(CARGO_SUB_OPTIONS) -- --nocapture
 
 check: fix fmt ## Check syntax, but don't build object files
-	$(CARGO_COMMAND) check $(CARGO_SUB_OPTIONS)
+	cargo $(CARGO_OPTIONS) check $(CARGO_SUB_OPTIONS)
 
 build: ## Build all project
-	$(CARGO_COMMAND) build $(CARGO_SUB_OPTIONS)
+	cargo $(CARGO_OPTIONS) build $(CARGO_SUB_OPTIONS)
 
 release-build: ## Build all project
-	$(CARGO_COMMAND) build --release $(CARGO_SUB_OPTIONS)
+	cargo $(CARGO_OPTIONS) build --release $(CARGO_SUB_OPTIONS)
 
 check-lib: ## Check module version
-	$(CARGO_COMMAND) outdated -R
+	cargo $(CARGO_OPTIONS) outdated -R
 
 update: ## Update modules
-	$(CARGO_COMMAND) update
+	cargo $(CARGO_OPTIONS) update
 
 clean: ## Remove the target directory
-	$(CARGO_COMMAND) clean
-
-install: ## Install to $(PREFIX) directory
-	$(CARGO_COMMAND) install --force --root $(PREFIX) --path .
+	cargo $(CARGO_OPTIONS) clean
 
 fix: ## Run fmt
-	$(CARGO_COMMAND) fix --allow-staged --allow-dirty $(CARGO_SUB_OPTIONS)
+	cargo $(CARGO_OPTIONS) fix --allow-staged --allow-dirty $(CARGO_SUB_OPTIONS)
 
 fmt: ## Run fmt
-	$(CARGO_COMMAND) fmt
+	cargo $(CARGO_OPTIONS) fmt
 
 fmt-check: ## Run fmt
-	$(CARGO_COMMAND) fmt --all -- --check
+	cargo $(CARGO_OPTIONS) fmt --all -- --check
 
 clippy: ## Run clippy
-	$(CARGO_COMMAND) clippy --all-features $(CARGO_SUB_OPTIONS) -- -D warnings
+	cargo $(CARGO_OPTIONS) clippy --all-features $(CARGO_SUB_OPTIONS) -- -D warnings
 
 bench: ## Run benchmark
-	$(CARGO_COMMAND) bench
+	cargo $(CARGO_OPTIONS) bench
+
+audit: ## Audit your dependencies for crates with security vulnerabilities reported
+	cargo $(CARGO_OPTIONS) audit
 
 publish:
 ifeq ($(LEVEL),)
 	$(error LEVEL not set correctly.)
 endif
 	cargo release $(LEVEL) --no-dev-version --tag-name "{{version}}"
-
-container-build:
-	docker build -t $(CONTAINER_REPO):$(CONTAINER_TAG) .
 
 help: ## Print help
 	echo -e "Usage: make [task]\n\nTasks:"
