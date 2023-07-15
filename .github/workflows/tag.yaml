@@ -39,7 +39,7 @@ jobs:
           "patch" ) patch=$(( patch + 1)) ;;
         esac
         tag_name="${major}.${minor}.${patch}"
-        cargo release ${tag_name} --tag-name ${tag_name} --execute
+        cargo release ${tag_name} --tag-name ${tag_name} --execute --no-confirm -v
       env:
         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
