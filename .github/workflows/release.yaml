@@ -42,7 +42,7 @@ jobs:
 
   upload_assets:
     name: Upload assets
-    pneeds: [release]
+    needs: [release]
     strategy:
       matrix:
         include:
