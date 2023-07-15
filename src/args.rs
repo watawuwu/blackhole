@@ -39,7 +39,6 @@ impl Args {
     }
 }
 
-
 #[test]
 fn verify_cli() {
     use clap::CommandFactory;
