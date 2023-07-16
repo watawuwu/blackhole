@@ -11,10 +11,10 @@ RUN mkdir src benches && \
 
 COPY . .
 
-RUN cargo build --release --target x86_64-unknown-linux-gnu
+RUN cargo build --release
 
 FROM gcr.io/distroless/cc
 
-COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/blackhole /bin/blackhole
+COPY --from=builder /app/target/release/blackhole /bin/blackhole
 
 ENTRYPOINT ["/bin/blackhole"]
