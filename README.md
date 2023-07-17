@@ -59,17 +59,16 @@ $ curl -v -d '{"test": 1}' -H 'application/json' -XPOST http://127.0.0.1:8080/js
 
 ## Installing
 
-- Install binary directly
-
-```
-❯❯ curl --tlsv1.2 -sSf https://raw.githubusercontent.com/watawuwu/blackhole/main/install.sh | sh
-```
 
 - Install with cargo
 
 ```
-❯❯ cargo install blackhole-bin
+$ cargo install blackhole-bin
 ```
+
+- Downloads assets from Github release
+
+https://github.com/watawuwu/blackhole/releases/latest
 
 ## Contributing
 

@@ -2,13 +2,6 @@ FROM rust:latest AS builder
 
 WORKDIR /app
 
-ADD Cargo.toml .
-ADD Cargo.lock .
-
-RUN mkdir src benches && \
-    echo 'fn main(){}' >  src/main.rs && \
-    cargo fetch
-
 COPY . .
 
 RUN cargo build --release

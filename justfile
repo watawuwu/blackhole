@@ -1,3 +1,7 @@
+name := "blackhole"
+
+export RUST_BACKTRACE := "1"
+
 default:
     just --list
 
@@ -6,8 +10,8 @@ deps:
     rustup component add rustfmt
     rustup component add clippy
     rustup component add rust-src
-    cargo install --force cargo-outdated
-    cargo install --force cargo-audit
+    cargo install cargo-outdated
+    cargo install cargo-audit
     rustup show
 
 # Execute a main.rs
@@ -19,7 +23,7 @@ test: fix fmt clippy
     cargo test -- --nocapture
 
 # Check syntax, but don't build object files
-check: fix fmt
+check: fix fmt clippy
     cargo check
 
 # Build all project
@@ -67,5 +71,5 @@ audit:
     cargo audit
 
 # Build container
-container version=0.6.2:
-    echo docker buildx build --platform=linux/amd64,linux/arm64 -t ghcr.io/watawuwu/blackhole:{{version}} --push .
+container version:
+    docker buildx build --platform=linux/amd64,linux/arm64 -t ghcr.io/watawuwu/{{name}}:{{version}} --push .
