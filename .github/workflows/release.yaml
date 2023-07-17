@@ -21,6 +21,9 @@ jobs:
     name: Publish creates.io and create github release
     runs-on: ubuntu-latest
 
+    outputs:
+      tag: ${{ steps.publish.outputs.tag }}
+
     steps:
     - name: Setup code
       uses: actions/checkout@v3
